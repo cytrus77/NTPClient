@@ -119,7 +119,14 @@ bool NTPClient::forceUpdate() {
   // this is NTP time (seconds since Jan 1 1900):
   unsigned long secsSince1900 = highWord << 16 | lowWord;
 
+  unsigned long usecHighWord = word(this->_packetBuffer[44], this->_packetBuffer[45]);
+  unsigned long usecLowWord = word(this->_packetBuffer[46], this->_packetBuffer[47]);
+  // combine the four bytes (two words) into a long integer
+  // this is NTP time (seconds since Jan 1 1900):
+  unsigned long usec = usecHighWord << 16 | usecLowWord;
+
   this->_currentEpoc = secsSince1900 - SEVENZYYEARS;
+  this->_currentMs = usec * 1.0e3 / (1LL << 32);
 
   return true;
 }
@@ -139,6 +146,10 @@ unsigned long NTPClient::getEpochTime() {
          ((millis() - this->_lastUpdate) / 1000); // Time since last update
 }
 
+unsigned long NTPClient::getEpochTimeMs() {
+  return (this->getEpochTime() * 1000) + this->_currentMs;
+}
+
 int NTPClient::getDay() {
   return (((this->getEpochTime()  / 86400L) + 4 ) % 7); //0 is Sunday
 }
@@ -150,6 +161,10 @@ int NTPClient::getMinutes() {
 }
 int NTPClient::getSeconds() {
   return (this->getEpochTime() % 60);
+}
+
+int NTPClient::getMilliSeconds() {
+  return ((this->_currentMs + millis() - this->_lastUpdate) % 1000);
 }
 
 String NTPClient::getFormattedTime(unsigned long secs) {
@@ -164,6 +179,12 @@ String NTPClient::getFormattedTime(unsigned long secs) {
   String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
 
   return hoursStr + ":" + minuteStr + ":" + secondStr;
+}
+
+String NTPClient::getFormattedTimeMs() {
+  unsigned int ms = this->getMilliSeconds();
+  String msStr = ms < 10 ? "00" + String(ms) : (ms < 100 ? "0" + String(ms) : String(ms));
+  return this->getFormattedTime() + "." + msStr;
 }
 
 // Based on https://github.com/PaulStoffregen/Time/blob/master/Time.cpp

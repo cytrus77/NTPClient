@@ -23,6 +23,7 @@ class NTPClient {
 
     unsigned long _currentEpoc    = 0;      // In s
     unsigned long _lastUpdate     = 0;      // In ms
+    unsigned long _currentMs      = 0;      // In ms
 
     byte          _packetBuffer[NTP_PACKET_SIZE];
 
@@ -65,6 +66,7 @@ class NTPClient {
     int getHours();
     int getMinutes();
     int getSeconds();
+    int getMilliSeconds();
 
     /**
      * Changes the time offset. Useful for changing timezones dynamically
@@ -81,11 +83,17 @@ class NTPClient {
     * @return secs argument (or 0 for current time) formatted like `hh:mm:ss`
     */
     String getFormattedTime(unsigned long secs = 0);
+    String getFormattedTimeMs();
 
     /**
      * @return time in seconds since Jan. 1, 1970
      */
     unsigned long getEpochTime();
+
+    /**
+     * @return time in miliseconds since Jan. 1, 1970
+     */
+    unsigned long getEpochTimeMs();
   
     /**
     * @return secs argument (or 0 for current date) formatted to ISO 8601
